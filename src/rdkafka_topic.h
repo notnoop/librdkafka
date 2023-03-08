@@ -173,7 +173,7 @@ struct rd_kafka_topic_s {
  * @brief Increase refcount and return topic object.
  */
 static RD_INLINE RD_UNUSED rd_kafka_topic_t *
-rd_kafka_topic_keep(rd_kafka_topic_t *rkt) {
+rd_kafka_topic_keep0(rd_kafka_topic_t *rkt) {
         rd_kafka_lwtopic_t *lrkt;
         if (unlikely((lrkt = rd_kafka_rkt_get_lw(rkt)) != NULL))
                 rd_kafka_lwtopic_keep(lrkt);
@@ -191,7 +191,7 @@ rd_kafka_topic_t *rd_kafka_topic_proper(rd_kafka_topic_t *app_rkt);
 /**
  * @brief Loose reference to topic object as increased by ..topic_keep().
  */
-static RD_INLINE RD_UNUSED void rd_kafka_topic_destroy0(rd_kafka_topic_t *rkt) {
+static RD_INLINE RD_UNUSED void rd_kafka_topic_destroy1(rd_kafka_topic_t *rkt) {
         rd_kafka_lwtopic_t *lrkt;
         if (unlikely((lrkt = rd_kafka_rkt_get_lw(rkt)) != NULL))
                 rd_kafka_lwtopic_destroy(lrkt);
@@ -199,6 +199,21 @@ static RD_INLINE RD_UNUSED void rd_kafka_topic_destroy0(rd_kafka_topic_t *rkt) {
                 rd_kafka_topic_destroy_final(rkt);
 }
 
+#if ENABLE_REFCNT_DEBUG
+#define rd_kafka_topic_keep(R)                                                 \
+        (fprintf(stderr, "REFCNT DEBUG: %-35s %d +1: %16p: %s:%d\n", #R,       \
+                 rd_refcnt_get(&(R)->rkt_refcnt), (R), (__FUNCTION__), (__LINE__)),           \
+         rd_kafka_topic_keep0(R))
+
+#define rd_kafka_topic_destroy0(R)                                             \
+        (fprintf(stderr, "REFCNT DEBUG: %-35s %d -1: %16p: %s:%d\n", #R,       \
+                 rd_refcnt_get(&(R)->rkt_refcnt), (R), __FUNCTION__, __LINE__),               \
+         rd_kafka_topic_destroy1(R))
+
+#else
+#define rd_kafka_topic_keep(R)                rd_kafka_topic_keep0(R)
+#define rd_kafka_topic_destroy0(R)            rd_kafka_topic_destroy1(R)
+#endif
 
 rd_kafka_topic_t *rd_kafka_topic_new0(rd_kafka_t *rk,
                                       const char *topic,
