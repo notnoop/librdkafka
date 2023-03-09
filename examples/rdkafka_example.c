@@ -42,6 +42,10 @@
 #include <sys/time.h>
 #include <getopt.h>
 
+#include "rd.h"
+#include "rdkafka_int.h"
+#include "rdkafka_topic.h"
+
 /* Typical include path would be <librdkafka/rdkafka.h>, but this program
  * is builtin from within the librdkafka source tree and thus differs. */
 #include "rdkafka.h" /* for Kafka driver */
@@ -776,9 +780,16 @@ int main(int argc, char **argv) {
                         rd_kafka_poll(rk, 10);
 
                 /* Destroy topic */
+                printf("Before destroying topic refcnt=%d app_refcnt=%d\n",
+                       rd_refcnt_get(&rkt->rkt_refcnt),
+                       rd_refcnt_get(&rkt->rkt_app_refcnt));
+
                 rd_kafka_topic_destroy(rkt);
 
-                printf("Destroyed topic\n");
+                printf("Destroyed topic refcnt=%d app_refcnt=%d\n",
+                       rd_refcnt_get(&rkt->rkt_refcnt),
+                       rd_refcnt_get(&rkt->rkt_app_refcnt));
+
 
                 /* Destroy handle */
                 rd_kafka_destroy(rk);
