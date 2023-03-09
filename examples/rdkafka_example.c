@@ -738,7 +738,7 @@ int main(int argc, char **argv) {
                         exit(1);
                 }
 
-                while (run) {
+                for (int i = 0; i < 2; i++) {
                         rd_kafka_message_t *rkmessage;
 
                         /* Poll for errors, etc. */
@@ -776,7 +776,20 @@ int main(int argc, char **argv) {
                         rd_kafka_poll(rk, 10);
 
                 /* Destroy topic */
+		printf("\n\n\n#### Before destroying topic\n");
+		rd_kafka_dump(stdout, rk);
+
                 rd_kafka_topic_destroy(rkt);
+
+		printf("\n\n\n#### After destroying topic\n");
+		rd_kafka_dump(stdout, rk);
+
+
+		while (run)
+			sleep(1);
+
+		printf("\n\n\n#### After waiting\n");
+		rd_kafka_dump(stdout, rk);
 
                 /* Destroy handle */
                 rd_kafka_destroy(rk);
