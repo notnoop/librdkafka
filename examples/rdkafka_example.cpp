@@ -32,6 +32,7 @@
  * (https://github.com/edenhill/librdkafka)
  */
 
+#include <ctime>
 #include <iostream>
 #include <string>
 #include <cstdlib>
