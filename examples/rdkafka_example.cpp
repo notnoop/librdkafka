@@ -207,7 +207,7 @@ void msg_consume(RdKafka::Message *message, void *opaque) {
 
   case RdKafka::ERR_NO_ERROR:
     /* Real message */
-    std::cout << "Read msg at offset " << message->offset() << std::endl;
+    std::cout << "Read msg at offset " << message->offset() << " " << message << std::endl;
     if (message->key()) {
       std::cout << "Key: " << *message->key() << std::endl;
     }
@@ -593,10 +593,12 @@ int main(int argc, char **argv) {
 
     ExampleConsumeCb ex_consume_cb;
 
+    std::time_t start = std::time(0);
+
     /*
      * Consume messages
      */
-    while (run) {
+    while ((std::time(0) - start) < 10) {
       if (use_ccb) {
         consumer->consume_callback(topic, partition, 1000, &ex_consume_cb,
                                    &use_ccb);
@@ -607,6 +609,8 @@ int main(int argc, char **argv) {
       }
       consumer->poll(0);
     }
+
+    std::cout << "loop finished" << std::endl;
 
     /*
      * Stop consumer
