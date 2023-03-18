@@ -276,7 +276,9 @@ rd_kafka_toppar_t *rd_kafka_toppar_new0(rd_kafka_topic_t *rkt,
                     intvl * 1000ll, rd_kafka_toppar_consumer_lag_tmr_cb, rktp);
         }
 
-        rktp->rktp_rkt = rd_kafka_topic_keep(rkt);
+
+        if (partition != RD_KAFKA_PARTITION_UA)
+            rktp->rktp_rkt = rd_kafka_topic_keep(rkt);
 
         rd_kafka_q_fwd_set(rktp->rktp_ops, rkt->rkt_rk->rk_ops);
         rd_kafka_dbg(rkt->rkt_rk, TOPIC, "TOPPARNEW",
@@ -331,7 +333,8 @@ void rd_kafka_toppar_destroy_final(rd_kafka_toppar_t *rktp) {
 
         rd_kafka_replyq_destroy(&rktp->rktp_replyq);
 
-        rd_kafka_topic_destroy0(rktp->rktp_rkt);
+        if (rktp->rktp_partition != RD_KAFKA_PARTITION_UA)
+          rd_kafka_topic_destroy0(rktp->rktp_rkt);
 
         mtx_destroy(&rktp->rktp_lock);
 
