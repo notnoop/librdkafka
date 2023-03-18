@@ -199,6 +199,7 @@ rd_kafka_metadata_cache_insert(rd_kafka_t *rk,
                                const rd_kafka_metadata_topic_t *mtopic,
                                rd_ts_t now,
                                rd_ts_t ts_expires) {
+        return NULL;
         struct rd_kafka_metadata_cache_entry *rkmce, *old;
         size_t topic_len;
         rd_tmpabuf_t tbuf;
