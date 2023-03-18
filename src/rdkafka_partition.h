@@ -399,6 +399,8 @@ struct rd_kafka_toppar_s {                           /* rd_kafka_toppar_t */
          (RD_KAFKA_TOPPAR_F_APP_PAUSE | RD_KAFKA_TOPPAR_F_LIB_PAUSE))
 
 
+void toppbar_keep_hook(rd_kafka_toppar_t *rktp, const char *func, int line);
+void toppbar_destroy_hook(rd_kafka_toppar_t *rktp, const char *func, int line);
 
 /**
  * @brief Increase refcount and return rktp object.
@@ -411,6 +413,7 @@ struct rd_kafka_toppar_s {                           /* rd_kafka_toppar_t */
 
 static RD_UNUSED RD_INLINE rd_kafka_toppar_t *
 rd_kafka_toppar_keep0(const char *func, int line, rd_kafka_toppar_t *rktp) {
+        toppbar_keep_hook(rktp, func, line);
         rd_refcnt_add_fl(func, line, &rktp->rktp_refcnt);
         return rktp;
 }
@@ -420,6 +423,7 @@ void rd_kafka_toppar_destroy_final(rd_kafka_toppar_t *rktp);
 #define rd_kafka_toppar_destroy(RKTP)                                          \
         do {                                                                   \
                 rd_kafka_toppar_t *_RKTP = (RKTP);                             \
+                toppbar_destroy_hook(_RKTP, __FUNCTION__, __LINE__);            \
                 if (unlikely(rd_refcnt_sub(&_RKTP->rktp_refcnt) == 0))         \
                         rd_kafka_toppar_destroy_final(_RKTP);                  \
         } while (0)

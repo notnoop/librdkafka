@@ -4176,3 +4176,11 @@ void rd_kafka_partition_leader_destroy_free(void *ptr) {
         struct rd_kafka_partition_leader *leader = ptr;
         rd_kafka_partition_leader_destroy(leader);
 }
+
+void toppbar_keep_hook(rd_kafka_toppar_t *rktp, const char *func, int line) {
+        fprintf(stderr, "## TOPPAR KEEP CALLED %p  at %s:%d\n", rktp, func, line);
+}
+
+void toppbar_destroy_hook(rd_kafka_toppar_t *rktp, const char *func, int line) {
+        fprintf(stderr, "## TOPPAR DESTROY CALLED %p  at %s:%d\n", rktp, func, line);
+}

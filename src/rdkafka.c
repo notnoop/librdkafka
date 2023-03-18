@@ -4025,11 +4025,12 @@ rd_kafka_toppar_dump(FILE *fp, const char *indent, rd_kafka_toppar_t *rktp) {
         fprintf(fp,
                 "%s%.*s [%" PRId32
                 "] broker %s, "
-                "leader_id %s\n",
+                "leader_id %s ref %16p ref_addr %16p \n",
                 indent, RD_KAFKAP_STR_PR(rktp->rktp_rkt->rkt_topic),
                 rktp->rktp_partition,
                 rktp->rktp_broker ? rktp->rktp_broker->rkb_name : "none",
-                rktp->rktp_leader ? rktp->rktp_leader->rkb_name : "none");
+                rktp->rktp_leader ? rktp->rktp_leader->rkb_name : "none",
+                rktp, &rktp->rktp_refcnt);
         fprintf(fp,
                 "%s refcnt %i\n"
                 "%s msgq:      %i messages\n"
@@ -4148,11 +4149,12 @@ static void rd_kafka_dump0(FILE *fp, rd_kafka_t *rk, int locks) {
                 fprintf(fp,
                         "  %.*s with %" PRId32
                         " partitions, state %s, "
-                        "refcnt %i\n",
+                        "refcnt %i app_refcnt %i\n",
                         RD_KAFKAP_STR_PR(rkt->rkt_topic),
                         rkt->rkt_partition_cnt,
                         rd_kafka_topic_state_names[rkt->rkt_state],
-                        rd_refcnt_get(&rkt->rkt_refcnt));
+                        rd_refcnt_get(&rkt->rkt_refcnt),
+                        rd_refcnt_get(&rkt->rkt_app_refcnt));
                 if (rkt->rkt_ua)
                         rd_kafka_toppar_dump(fp, "   ", rkt->rkt_ua);
                 if (rd_list_empty(&rkt->rkt_desp)) {

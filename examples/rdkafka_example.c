@@ -784,6 +784,7 @@ int main(int argc, char **argv) {
 		printf("\n\n\n#### After destroying topic\n");
 		rd_kafka_dump(stdout, rk);
 
+                fprintf(stderr, "### DESTROYED TOPIC\n");
 
 		while (run)
 			sleep(1);
