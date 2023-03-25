@@ -948,6 +948,7 @@ static int rd_kafka_topic_partition_cnt_update(rd_kafka_topic_t *rkt,
 
                 } else {
                         /* Tell handling broker to let go of the toppar */
+                        fprintf(stderr, "####### cnt_upate\n");
                         rd_kafka_toppar_broker_leave_for_remove(rktp);
                 }
 

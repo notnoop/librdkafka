@@ -2749,11 +2749,15 @@ static RD_UNUSED int rd_kafka_consume_stop0(rd_kafka_toppar_t *rktp) {
         err = rd_kafka_q_wait_result(tmpq, RD_POLL_INFINITE);
         rd_kafka_q_destroy_owner(tmpq);
 
+        fprintf(stderr, "### PURGING %p %d\n", rktp, rktp->rktp_partition);
         rd_kafka_topic_wrlock(rktp->rktp_rkt);
         rd_kafka_toppar_lock(rktp);
         rd_kafka_toppar_purge_and_disable_queues(rktp);
+        rd_kafka_toppar_broker_leave_for_remove(rktp);
         rd_kafka_toppar_unlock(rktp);
         rd_kafka_topic_wrunlock(rktp->rktp_rkt);
+        fprintf(stderr, "### PURGED %p %d %d\n", rktp, rktp->rktp_partition,
+                rd_refcnt_get(&rktp->rktp_refcnt));
 
         rd_kafka_set_last_error(err, err ? EINVAL : 0);
 

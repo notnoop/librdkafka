@@ -668,6 +668,7 @@ void rd_kafka_toppar_desired_del(rd_kafka_toppar_t *rktp) {
         if (rktp->rktp_flags & RD_KAFKA_TOPPAR_F_UNKNOWN) {
                 /* If this partition does not exist in the cluster
                  * and is no longer desired, remove it. */
+                fprintf(stderr, "####### DESIRED DEL\n");
                 rd_kafka_toppar_broker_leave_for_remove(rktp);
         }
 }
@@ -4180,9 +4181,9 @@ void rd_kafka_partition_leader_destroy_free(void *ptr) {
 }
 
 void toppbar_keep_hook(rd_kafka_toppar_t *rktp, const char *func, int line) {
-        fprintf(stderr, "## TOPPAR KEEP CALLED %p  at %s:%d\n", rktp, func, line);
+        //fprintf(stderr, "## TOPPAR KEEP CALLED %p  at %s:%d\n", rktp, func, line);
 }
 
 void toppbar_destroy_hook(rd_kafka_toppar_t *rktp, const char *func, int line) {
-        fprintf(stderr, "## TOPPAR DESTROY CALLED %p  at %s:%d\n", rktp, func, line);
+        //fprintf(stderr, "## TOPPAR DESTROY CALLED %p  at %s:%d\n", rktp, func, line);
 }
