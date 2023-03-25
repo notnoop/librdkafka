@@ -1572,6 +1572,7 @@ void rd_kafka_topic_scan_all(rd_kafka_t *rk, rd_ts_t now) {
 
                 for (p = RD_KAFKA_PARTITION_UA; p < rkt->rkt_partition_cnt;
                      p++) {
+			continue;
 
                         if (!(rktp = rd_kafka_toppar_get(
                                   rkt, p,

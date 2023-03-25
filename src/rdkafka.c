@@ -2749,6 +2749,12 @@ static RD_UNUSED int rd_kafka_consume_stop0(rd_kafka_toppar_t *rktp) {
         err = rd_kafka_q_wait_result(tmpq, RD_POLL_INFINITE);
         rd_kafka_q_destroy_owner(tmpq);
 
+        rd_kafka_topic_wrlock(rktp->rktp_rkt);
+        rd_kafka_toppar_lock(rktp);
+        rd_kafka_toppar_purge_and_disable_queues(rktp);
+        rd_kafka_toppar_unlock(rktp);
+        rd_kafka_topic_wrunlock(rktp->rktp_rkt);
+
         rd_kafka_set_last_error(err, err ? EINVAL : 0);
 
         return err ? -1 : 0;

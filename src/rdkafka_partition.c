@@ -196,6 +196,7 @@ void rd_kafka_toppar_op_version_bump(rd_kafka_toppar_t *rktp, int32_t version) {
         rko->rko_prio         = RD_KAFKA_PRIO_FLASH;
         rko->rko_rktp         = rd_kafka_toppar_keep(rktp);
         rd_kafka_q_enq(rktp->rktp_fetchq, rko);
+	fprintf(stderr, "created barrier %p\n", rko);
 }
 
 
@@ -1057,6 +1058,7 @@ void rd_kafka_toppar_broker_leave_for_remove(rd_kafka_toppar_t *rktp) {
         rd_kafka_broker_t *dest_rkb;
 
         rktp->rktp_flags |= RD_KAFKA_TOPPAR_F_REMOVE;
+	fprintf(stderr, "### rktp leaving %p %d\n", rktp, rktp->rktp_partition);
 
         if (rktp->rktp_next_broker)
                 dest_rkb = rktp->rktp_next_broker;

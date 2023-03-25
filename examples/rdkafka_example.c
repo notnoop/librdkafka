@@ -306,6 +306,7 @@ int main(int argc, char **argv) {
         rd_kafka_headers_t *hdrs = NULL;
         rd_kafka_resp_err_t err;
 
+	setbuf(stdout, NULL);
         /* Kafka configuration */
         conf = rd_kafka_conf_new();
 
@@ -770,27 +771,29 @@ int main(int argc, char **argv) {
                 }
 
                 /* Stop consuming */
+		fprintf(stderr, "\n\n\n#### Before stopping consuming\n");
+		rd_kafka_dump(stderr, rk);
                 rd_kafka_consume_stop(rkt, partition);
 
                 while (rd_kafka_outq_len(rk) > 0)
                         rd_kafka_poll(rk, 10);
 
                 /* Destroy topic */
-		printf("\n\n\n#### Before destroying topic\n");
-		rd_kafka_dump(stdout, rk);
+		fprintf(stderr, "\n\n\n#### Before destroying topic\n");
+		rd_kafka_dump(stderr, rk);
 
                 rd_kafka_topic_destroy(rkt);
+		sleep(1);
 
-		printf("\n\n\n#### After destroying topic\n");
-		rd_kafka_dump(stdout, rk);
+		fprintf(stderr, "\n\n\n#### After destroying topic\n");
+		rd_kafka_dump(stderr, rk);
 
                 fprintf(stderr, "### DESTROYED TOPIC\n");
 
-		while (run)
-			sleep(1);
+		sleep(1);
 
-		printf("\n\n\n#### After waiting\n");
-		rd_kafka_dump(stdout, rk);
+		fprintf(stderr, "\n\n\n#### After waiting\n");
+		rd_kafka_dump(stderr, rk);
 
                 /* Destroy handle */
                 rd_kafka_destroy(rk);
