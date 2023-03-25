@@ -78,10 +78,13 @@ static void rd_kafka_topic_destroy_app(rd_kafka_topic_t *app_rkt) {
 
         rd_assert(!rd_kafka_rkt_is_lw(app_rkt));
 
-        if (unlikely(rd_refcnt_sub(&rkt->rkt_app_refcnt) == 0))
-                rd_kafka_topic_destroy0(rkt); /* final app reference lost,
-                                               * loose reference from
-                                               * keep_app() */
+        if (unlikely(rd_refcnt_sub(&rkt->rkt_app_refcnt) == 0)) {
+                /* final app reference lost, free partitions and loose
+                 * reference from keep_app()
+                 */
+                rd_kafka_topic_partitions_remove(rkt);
+                rd_kafka_topic_destroy0(rkt);
+        }
 }
 
 
@@ -1388,7 +1391,8 @@ static rd_list_t *rd_kafka_topic_get_all_partitions(rd_kafka_topic_t *rkt) {
 
 /**
  * Remove all partitions from a topic, including the ua.
- * Must only be called during rd_kafka_t termination.
+ * Must only be called during rd_kafka_t termination
+ * or rd_kafka_topic_t destruction.
  *
  * Locality: main thread
  */
