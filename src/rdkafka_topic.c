@@ -82,7 +82,9 @@ static void rd_kafka_topic_destroy_app(rd_kafka_topic_t *app_rkt) {
                 /* final app reference lost, free partitions and loose
                  * reference from keep_app()
                  */
-                rd_kafka_topic_partitions_remove(rkt);
+                if (rkt->rkt_rk->rk_type == RD_KAFKA_CONSUMER) {
+                        rd_kafka_topic_partitions_remove(rkt);
+                }
                 rd_kafka_topic_destroy0(rkt);
         }
 }
