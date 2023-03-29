@@ -78,7 +78,13 @@ static void rd_kafka_topic_destroy_app(rd_kafka_topic_t *app_rkt) {
 
         rd_assert(!rd_kafka_rkt_is_lw(app_rkt));
 
+        rd_kafka_topic_wrlock(rkt);
         if (unlikely(rd_refcnt_sub(&rkt->rkt_app_refcnt) == 0)) {
+                if (rkt->rkt_rk->rk_type == RD_KAFKA_CONSUMER) {
+                        rkt->rkt_flags |= RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT;
+                }
+                rd_kafka_topic_wrunlock(rkt);
+
                 /* final app reference lost, free partitions and loose
                  * reference from keep_app()
                  */
@@ -86,6 +92,8 @@ static void rd_kafka_topic_destroy_app(rd_kafka_topic_t *app_rkt) {
                         rd_kafka_topic_partitions_remove(rkt);
                 }
                 rd_kafka_topic_destroy0(rkt);
+        } else {
+                rd_kafka_topic_wrunlock(rkt);
         }
 }
 
@@ -154,11 +162,20 @@ rd_kafka_topic_t *rd_kafka_topic_find_fl(const char *func,
                                          const char *topic,
                                          int do_lock) {
         rd_kafka_topic_t *rkt;
+        int rkt_flags;
+
 
         if (do_lock)
                 rd_kafka_rdlock(rk);
         TAILQ_FOREACH(rkt, &rk->rk_topics, rkt_link) {
                 if (!rd_kafkap_str_cmp_str(rkt->rkt_topic, topic)) {
+                        rd_kafka_topic_rdlock(rkt);
+                        rkt_flags = rkt->rkt_flags;
+                        rd_kafka_topic_rdunlock(rkt);
+                        if (rkt_flags & RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT) {
+                                continue;
+                        }
+
                         rd_kafka_topic_keep(rkt);
                         break;
                 }
@@ -177,10 +194,18 @@ rd_kafka_topic_t *rd_kafka_topic_find0_fl(const char *func,
                                           rd_kafka_t *rk,
                                           const rd_kafkap_str_t *topic) {
         rd_kafka_topic_t *rkt;
+        int rkt_flags;
 
         rd_kafka_rdlock(rk);
         TAILQ_FOREACH(rkt, &rk->rk_topics, rkt_link) {
                 if (!rd_kafkap_str_cmp(rkt->rkt_topic, topic)) {
+                        rd_kafka_topic_rdlock(rkt);
+                        rkt_flags = rkt->rkt_flags;
+                        rd_kafka_topic_rdunlock(rkt);
+                        if (rkt_flags & RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT) {
+                                continue;
+                        }
+
                         rd_kafka_topic_keep(rkt);
                         break;
                 }
@@ -512,12 +537,26 @@ rd_kafka_topic_t *rd_kafka_topic_new(rd_kafka_t *rk,
         rd_kafka_topic_t *rkt;
         int existing;
 
-        rkt = rd_kafka_topic_new0(rk, topic, conf, &existing, 1 /*lock*/);
-        if (!rkt)
-                return NULL;
+        while (1) {
+                rkt =
+                    rd_kafka_topic_new0(rk, topic, conf, &existing, 1 /*lock*/);
+                if (!rkt)
+                        return NULL;
 
-        /* Increase application refcount. */
-        rd_kafka_topic_keep_app(rkt);
+                /* Increase application refcount. */
+
+                rd_kafka_topic_wrlock(rkt);
+                rd_kafka_topic_keep_app(rkt);
+
+                if (!(rkt->rkt_flags & RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT)) {
+                        rd_kafka_topic_wrunlock(rkt);
+                        break;
+                }
+
+                /* got a topic while it's being purged. Retry creating one */
+                rd_kafka_topic_wrunlock(rkt);
+                rd_kafka_topic_destroy0(rkt);
+        }
 
         /* Query for the topic leader (async) */
         if (!existing)

@@ -148,6 +148,9 @@ struct rd_kafka_topic_s {
         0x1 /* Leader lost/unavailable                                         \
              * for at least one partition. */
 
+#define RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT                                       \
+        0x2 /* Topic instance is being purged */
+
         rd_kafka_resp_err_t rkt_err; /**< Permanent error. */
 
         rd_kafka_t *rkt_rk;
