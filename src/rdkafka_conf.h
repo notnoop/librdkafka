@@ -221,6 +221,7 @@ struct rd_kafka_conf_s {
         int api_version_fallback_ms;
         char *broker_version_fallback;
         rd_kafka_secproto_t security_protocol;
+        rd_bool_t consumer_destroy_topic_partitions_on_cleanup;
 
         struct {
 #if WITH_SSL
@@ -593,7 +594,6 @@ struct rd_kafka_topic_conf_s {
         int auto_offset_reset;
         char *offset_store_path;
         int offset_store_sync_interval_ms;
-        rd_bool_t consumer_destroy_partitions_on_cleanup;
 
         rd_kafka_offset_method_t offset_store_method;
 

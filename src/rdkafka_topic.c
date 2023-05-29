@@ -80,7 +80,7 @@ static void rd_kafka_topic_destroy_app(rd_kafka_topic_t *app_rkt) {
 
         rd_kafka_topic_wrlock(rkt);
         if (unlikely(rd_refcnt_sub(&rkt->rkt_app_refcnt) == 0)) {
-                rd_bool_t destroy_partitions = rkt->rkt_conf.consumer_destroy_partitions_on_cleanup;
+                rd_bool_t destroy_partitions = rkt->rkt_rk->rk_conf.consumer_destroy_topic_partitions_on_cleanup;
                 if (destroy_partitions && rkt->rkt_rk->rk_type == RD_KAFKA_CONSUMER) {
                         rkt->rkt_flags |= RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT;
                 }

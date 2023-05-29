@@ -728,7 +728,7 @@ rd_kafka_assignment_add(rd_kafka_t *rk,
                 rd_kafka_toppar_lock(rktp);
 
                 // subscriptions don't update rkt app_refcnt
-                rd_assert(!rktp->rktp_rkt->rkt_conf.consumer_destroy_partitions_on_cleanup);
+                rd_assert(!rktp->rktp_rkt->rkt_rk->rk_conf.consumer_destroy_topic_partitions_on_cleanup);
 
                 rd_assert(!(rktp->rktp_flags & RD_KAFKA_TOPPAR_F_ASSIGNED));
                 rktp->rktp_flags |= RD_KAFKA_TOPPAR_F_ASSIGNED;

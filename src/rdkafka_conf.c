@@ -1401,6 +1401,11 @@ static const struct rd_kafka_property rd_kafka_properties[] = {
      "A higher value allows for more effective batching of these "
      "messages.",
      0, 900000, 10},
+    {_RK_GLOBAL | _RK_CONSUMER, "consumer_destroy_kafka_partitions_on_cleanup",
+     _RK_C_BOOL, _RK(consumer_destroy_topic_partitions_on_cleanup),
+     "When set to `true`, Kafka will destroy partition references and stop "
+     "fetching metadata for topic",
+     0, 1, 0},
 
 
     /*
@@ -1578,13 +1583,6 @@ static const struct rd_kafka_property rd_kafka_properties[] = {
      .vdef = RD_KAFKA_OFFSET_METHOD_BROKER,
      .s2i  = {{RD_KAFKA_OFFSET_METHOD_FILE, "file"},
              {RD_KAFKA_OFFSET_METHOD_BROKER, "broker"}}},
-
-    {_RK_TOPIC | _RK_CONSUMER, "consumer_destroy_partitions_on_cleanup",
-     _RK_C_BOOL, _RKT(consumer_destroy_partitions_on_cleanup),
-     "When set to `true`, Kafka will destroy partition references and stop "
-     "fetching metadata for topic",
-     0, 1, 0},
-
 
     {_RK_TOPIC | _RK_CONSUMER, "consume.callback.max.messages", _RK_C_INT,
      _RKT(consume_callback_max_msgs),
