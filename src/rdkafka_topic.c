@@ -80,8 +80,19 @@ static void rd_kafka_topic_destroy_app(rd_kafka_topic_t *app_rkt) {
 
         rd_kafka_topic_wrlock(rkt);
         if (unlikely(rd_refcnt_sub(&rkt->rkt_app_refcnt) == 0)) {
-                rd_bool_t destroy_partitions = rkt->rkt_rk->rk_conf.consumer_destroy_topic_partitions_on_cleanup;
-                if (destroy_partitions && rkt->rkt_rk->rk_type == RD_KAFKA_CONSUMER) {
+                rd_bool_t destroy_partitions =
+                    rkt->rkt_rk->rk_conf
+                        .consumer_destroy_topic_partitions_on_cleanup &&
+                    rkt->rkt_rk->rk_type == RD_KAFKA_CONSUMER;
+                rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "FWARN",
+                             "Destroying app_rkt %p topic=%.*s, app_refcnt=%d "
+                             "refcnt=%d destroying_partitions=%d",
+                             rkt, RD_KAFKAP_STR_PR(rkt->rkt_topic),
+                             rd_refcnt_get(&rkt->rkt_app_refcnt),
+                             rd_refcnt_get(&rkt->rkt_refcnt),
+                             destroy_partitions);
+
+                if (destroy_partitions) {
                         rkt->rkt_flags |= RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT;
                 }
                 rd_kafka_topic_wrunlock(rkt);
@@ -89,10 +100,12 @@ static void rd_kafka_topic_destroy_app(rd_kafka_topic_t *app_rkt) {
                 /* final app reference lost, free partitions and loose
                  * reference from keep_app()
                  */
-                if (destroy_partitions && rkt->rkt_rk->rk_type == RD_KAFKA_CONSUMER) {
+                if (destroy_partitions) {
                         rd_kafka_topic_partitions_remove(rkt);
                 }
                 rd_kafka_topic_destroy0(rkt);
+                rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "FWARN",
+                             "Destroyed app_rkt %p", rkt);
         } else {
                 rd_kafka_topic_wrunlock(rkt);
         }
@@ -173,6 +186,14 @@ rd_kafka_topic_t *rd_kafka_topic_find_fl(const char *func,
                         rd_kafka_topic_rdlock(rkt);
                         rkt_flags = rkt->rkt_flags;
                         rd_kafka_topic_rdunlock(rkt);
+                        rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "FWARN",
+                                     "FOUND find_fl app_rkt %p topic=%.*s, "
+                                     "app_refcnt=%d "
+                                     "refcnt=%d flags=%d",
+                                     rkt, RD_KAFKAP_STR_PR(rkt->rkt_topic),
+                                     rd_refcnt_get(&rkt->rkt_app_refcnt),
+                                     rd_refcnt_get(&rkt->rkt_refcnt),
+                                     rkt_flags);
                         if (rkt_flags & RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT) {
                                 continue;
                         }
@@ -203,6 +224,14 @@ rd_kafka_topic_t *rd_kafka_topic_find0_fl(const char *func,
                         rd_kafka_topic_rdlock(rkt);
                         rkt_flags = rkt->rkt_flags;
                         rd_kafka_topic_rdunlock(rkt);
+                        rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "FWARN",
+                                     "FOUND find0_fl app_rkt %p topic=%.*s, "
+                                     "app_refcnt=%d "
+                                     "refcnt=%d flags=%d",
+                                     rkt, RD_KAFKAP_STR_PR(rkt->rkt_topic),
+                                     rd_refcnt_get(&rkt->rkt_app_refcnt),
+                                     rd_refcnt_get(&rkt->rkt_refcnt),
+                                     rkt_flags);
                         if (rkt_flags & RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT) {
                                 continue;
                         }
@@ -548,6 +577,13 @@ rd_kafka_topic_t *rd_kafka_topic_new(rd_kafka_t *rk,
 
                 rd_kafka_topic_wrlock(rkt);
                 rd_kafka_topic_keep_app(rkt);
+                rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "FWARN",
+                             "FOUND topic_new app_rkt %p topic=%.*s, "
+                             "app_refcnt=%d "
+                             "refcnt=%d flags=%d",
+                             rkt, RD_KAFKAP_STR_PR(rkt->rkt_topic),
+                             rd_refcnt_get(&rkt->rkt_app_refcnt),
+                             rd_refcnt_get(&rkt->rkt_refcnt), rkt->rkt_flags);
 
                 if (!(rkt->rkt_flags & RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT)) {
                         rd_kafka_topic_wrunlock(rkt);
