@@ -194,9 +194,11 @@ rd_kafka_topic_t *rd_kafka_topic_find_fl(const char *func,
                                      rd_refcnt_get(&rkt->rkt_app_refcnt),
                                      rd_refcnt_get(&rkt->rkt_refcnt),
                                      rkt_flags);
+                        /*
                         if (rkt_flags & RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT) {
                                 continue;
                         }
+                        */
 
                         rd_kafka_topic_keep(rkt);
                         break;
@@ -232,9 +234,11 @@ rd_kafka_topic_t *rd_kafka_topic_find0_fl(const char *func,
                                      rd_refcnt_get(&rkt->rkt_app_refcnt),
                                      rd_refcnt_get(&rkt->rkt_refcnt),
                                      rkt_flags);
+                        /*
                         if (rkt_flags & RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT) {
                                 continue;
                         }
+                        */
 
                         rd_kafka_topic_keep(rkt);
                         break;
