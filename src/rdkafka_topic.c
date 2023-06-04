@@ -575,8 +575,11 @@ rd_kafka_topic_t *rd_kafka_topic_new(rd_kafka_t *rk,
                 rd_kafka_topic_conf_t *conf_copy =
                     conf ? NULL : rd_kafka_default_topic_conf_dup(rk);
 
+
+                rd_kafka_wrlock(rk);
                 rkt =
-                    rd_kafka_topic_new0(rk, topic, conf_copy, &existing, 1 /*lock*/);
+                    rd_kafka_topic_new0(rk, topic, conf_copy, &existing, 0 /*no-lock*/);
+                rd_kafka_wrunlock(rk);
                 if (!rkt)
                         return NULL;
 
