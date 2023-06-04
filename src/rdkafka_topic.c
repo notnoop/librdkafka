@@ -118,9 +118,8 @@ static void rd_kafka_topic_destroy_app(rd_kafka_topic_t *app_rkt) {
 void rd_kafka_topic_destroy_final(rd_kafka_topic_t *rkt) {
         rd_kafka_partition_msgid_t *partmsgid, *partmsgid_tmp;
 
-        rd_kafka_assert(rkt->rkt_rk, rd_refcnt_get(&rkt->rkt_refcnt) == 0);
-
         rd_kafka_wrlock(rkt->rkt_rk);
+        rd_kafka_assert(rkt->rkt_rk, rd_refcnt_get(&rkt->rkt_refcnt) == 0);
         TAILQ_REMOVE(&rkt->rkt_rk->rk_topics, rkt, rkt_link);
         rkt->rkt_rk->rk_topic_cnt--;
         rd_kafka_wrunlock(rkt->rkt_rk);
