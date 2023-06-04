@@ -583,7 +583,6 @@ rd_kafka_topic_t *rd_kafka_topic_new(rd_kafka_t *rk,
                 /* Increase application refcount. */
 
                 rd_kafka_topic_wrlock(rkt);
-                rd_kafka_topic_keep_app(rkt);
                 rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "FWARN",
                              "FOUND topic_new app_rkt %p topic=%.*s, "
                              "app_refcnt=%d "
@@ -593,6 +592,7 @@ rd_kafka_topic_t *rd_kafka_topic_new(rd_kafka_t *rk,
                              rd_refcnt_get(&rkt->rkt_refcnt), rkt->rkt_flags);
 
                 if (!(rkt->rkt_flags & RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT)) {
+                        rd_kafka_topic_keep_app(rkt);
                         rd_kafka_topic_wrunlock(rkt);
                         break;
                 }
