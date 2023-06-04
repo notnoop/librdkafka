@@ -572,8 +572,11 @@ rd_kafka_topic_t *rd_kafka_topic_new(rd_kafka_t *rk,
         int existing;
 
         while (1) {
+                rd_kafka_topic_conf_t *conf_copy =
+                    conf ? NULL : rd_kafka_default_topic_conf_dup(rk);
+
                 rkt =
-                    rd_kafka_topic_new0(rk, topic, conf, &existing, 1 /*lock*/);
+                    rd_kafka_topic_new0(rk, topic, conf_copy, &existing, 1 /*lock*/);
                 if (!rkt)
                         return NULL;
 
@@ -602,6 +605,8 @@ rd_kafka_topic_t *rd_kafka_topic_new(rd_kafka_t *rk,
         /* Query for the topic leader (async) */
         if (!existing)
                 rd_kafka_topic_leader_query(rk, rkt);
+        if (conf)
+                rd_kafka_topic_conf_destroy(conf);
 
         /* Drop our reference since there is already/now an app refcnt */
         rd_kafka_topic_destroy0(rkt);
