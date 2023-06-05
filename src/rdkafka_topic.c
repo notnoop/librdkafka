@@ -125,6 +125,13 @@ static void rd_kafka_topic_destroy_app(rd_kafka_topic_t *app_rkt) {
                 if (destroy_partitions) {
                         rd_kafka_topic_partitions_remove(rkt);
                 }
+                rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "FWARN",
+                             "Destroying After partitions app_rkt %p topic=%.*s, app_refcnt=%d "
+                             "refcnt=%d destroying_partitions=%d",
+                             rkt, RD_KAFKAP_STR_PR(rkt->rkt_topic),
+                             rd_refcnt_get(&rkt->rkt_app_refcnt),
+                             rd_refcnt_get(&rkt->rkt_refcnt),
+                             destroy_partitions);
                 rd_kafka_topic_destroy0(rkt);
                 rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "FWARN",
                              "Destroyed app_rkt %p", rkt);
