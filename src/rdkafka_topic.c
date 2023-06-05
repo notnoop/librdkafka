@@ -1137,7 +1137,7 @@ rd_bool_t rd_kafka_topic_set_notexists(rd_kafka_topic_t *rkt,
         rkt->rkt_flags &= ~RD_KAFKA_TOPIC_F_LEADER_UNAVAIL;
 
         rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "FWARN",
-                     "Notified topic is freed app_rkt %p topic=%.*s, app_refcnt=%d "
+                     "Notified topic is deleted app_rkt %p topic=%.*s, app_refcnt=%d "
                      "refcnt=%d",
                      rkt, RD_KAFKAP_STR_PR(rkt->rkt_topic),
                      rd_refcnt_get(&rkt->rkt_app_refcnt),
@@ -1532,9 +1532,13 @@ void rd_kafka_topic_scan_all(rd_kafka_t *rk, rd_ts_t now) {
 
                 rd_kafka_topic_wrlock(rkt);
 
+                if (rkt->rkt_state == RD_KAFKA_TOPIC_S_NOTEXISTS) {
+                        rd_kafka_topic_wrunlock(rkt);
+                        continue;
+                }
+
                 /* Check if metadata information has timed out. */
                 if (rkt->rkt_state != RD_KAFKA_TOPIC_S_UNKNOWN &&
-                    rkt->rkt_state != RD_KAFKA_TOPIC_S_NOTEXISTS &&
                     !rd_kafka_metadata_cache_topic_get(rk, rkt->rkt_topic->str,
                                                        1 /*only valid*/)) {
                         rd_kafka_dbg(rk, TOPIC, "NOINFO",
