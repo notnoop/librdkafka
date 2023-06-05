@@ -1510,12 +1510,10 @@ static const char *rd_kafka_toppar_needs_query(rd_kafka_t *rk,
 static int rd_kafka_remove_deleted_topic_eonce(void *elem, void *opaque) {
         rd_kafka_topic_t *rkt = elem;
 
-        if (rd_refcnt_get(&rkt->rkt_app_refcnt) == 0) {
-                // remove it once and for all
-                rd_kafka_topic_partitions_remove(rkt);
-                // free rk reference
-                rd_kafka_topic_destroy0(rkt);
-        }
+        // remove it once and for all
+        rd_kafka_topic_partitions_remove(rkt);
+        // free rk reference
+        rd_kafka_topic_destroy0(rkt);
 
         return 0; /* remove eonce from list */
 }
@@ -1547,11 +1545,19 @@ void rd_kafka_topic_scan_all(rd_kafka_t *rk, rd_ts_t now) {
                 rd_kafka_topic_wrlock(rkt);
 
                 if (rkt->rkt_state == RD_KAFKA_TOPIC_S_NOTEXISTS) {
-                        rd_kafka_topic_wrunlock(rkt);
+                        rd_bool_t delete =
+                            rk->rk_conf.destroy_nonexistent_topics &&
+                            rd_refcnt_get(&rkt->rkt_app_refcnt) == 0 &&
+                            !(rkt->rkt_flags &
+                              RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT);
 
-                        if (rk->rk_conf.destroy_nonexistent_topics) {
+                        if (delete) {
+                                rkt->rkt_flags |=
+                                    RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT;
                                 rd_list_add(&deleted_topics, rkt);
                         }
+
+                        rd_kafka_topic_wrunlock(rkt);
                         continue;
                 }
 
