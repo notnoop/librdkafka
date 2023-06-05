@@ -1534,6 +1534,9 @@ void rd_kafka_topic_scan_all(rd_kafka_t *rk, rd_ts_t now) {
 
                 if (rkt->rkt_state == RD_KAFKA_TOPIC_S_NOTEXISTS) {
                         rd_kafka_topic_wrunlock(rkt);
+                        
+                        // remove it once and for all
+                        rd_kafka_topic_partitions_remove(rkt);
                         continue;
                 }
 
