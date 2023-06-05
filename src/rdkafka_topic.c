@@ -118,7 +118,7 @@ void rd_kafka_topic_destroy_final(rd_kafka_topic_t *rkt) {
         rd_refcnt_destroy(&rkt->rkt_app_refcnt);
         rd_refcnt_destroy(&rkt->rkt_refcnt);
 
-        rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "FWARN",
+        rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "MYWARN",
                      "Finally destroying app_rkt %p topic=%.*s, app_refcnt=%d "
                      "refcnt=%d",
                      rkt, RD_KAFKAP_STR_PR(rkt->rkt_topic),
@@ -1136,7 +1136,7 @@ rd_bool_t rd_kafka_topic_set_notexists(rd_kafka_topic_t *rkt,
 
         rkt->rkt_flags &= ~RD_KAFKA_TOPIC_F_LEADER_UNAVAIL;
 
-        rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "FWARN",
+        rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "MYWARN",
                      "Notified topic is deleted app_rkt %p topic=%.*s, app_refcnt=%d "
                      "refcnt=%d",
                      rkt, RD_KAFKAP_STR_PR(rkt->rkt_topic),
@@ -1550,6 +1550,15 @@ void rd_kafka_topic_scan_all(rd_kafka_t *rk, rd_ts_t now) {
                             rd_refcnt_get(&rkt->rkt_app_refcnt) == 0 &&
                             !(rkt->rkt_flags &
                               RD_KAFKA_TOPIC_F_PURGE_IN_FLIGHT);
+
+                        rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "MYWARN",
+                                     "found non-existent destroying app_rkt %p "
+                                     "topic=%.*s, app_refcnt=%d "
+                                     "refcnt=%d flag=%d delete=%d",
+                                     rkt, RD_KAFKAP_STR_PR(rkt->rkt_topic),
+                                     rd_refcnt_get(&rkt->rkt_app_refcnt),
+                                     rd_refcnt_get(&rkt->rkt_refcnt),
+                                     rkt->rkt_flags, delete);
 
                         if (delete) {
                                 rkt->rkt_flags |=
