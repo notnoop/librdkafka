@@ -1152,8 +1152,6 @@ rd_bool_t rd_kafka_topic_set_notexists(rd_kafka_topic_t *rkt,
         /* Propagate nonexistent topic info */
         rd_kafka_topic_propagate_notexists(rkt, err);
 
-        rd_kafka_topic_partitions_remove(rkt);
-
         return rd_true;
 }
 
@@ -1536,6 +1534,7 @@ void rd_kafka_topic_scan_all(rd_kafka_t *rk, rd_ts_t now) {
 
                 /* Check if metadata information has timed out. */
                 if (rkt->rkt_state != RD_KAFKA_TOPIC_S_UNKNOWN &&
+                    rkt->rkt_state != RD_KAFKA_TOPIC_S_NOTEXISTS &&
                     !rd_kafka_metadata_cache_topic_get(rk, rkt->rkt_topic->str,
                                                        1 /*only valid*/)) {
                         rd_kafka_dbg(rk, TOPIC, "NOINFO",
