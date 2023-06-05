@@ -1510,10 +1510,13 @@ static const char *rd_kafka_toppar_needs_query(rd_kafka_t *rk,
 static int rd_kafka_remove_deleted_topic_eonce(void *elem, void *opaque) {
         rd_kafka_topic_t *rkt = elem;
 
-        // remove it once and for all
-        rd_kafka_topic_partitions_remove(rkt);
-        // free rk reference
-        rd_kafka_topic_destroy0(rkt);
+        if (rd_refcnt_get(&rkt->rkt_app_refcnt) == 0) {
+                // remove it once and for all
+                rd_kafka_topic_partitions_remove(rkt);
+                // free rk reference
+                rd_kafka_topic_destroy0(rkt);
+        }
+
         return 0; /* remove eonce from list */
 }
 
@@ -1545,8 +1548,10 @@ void rd_kafka_topic_scan_all(rd_kafka_t *rk, rd_ts_t now) {
 
                 if (rkt->rkt_state == RD_KAFKA_TOPIC_S_NOTEXISTS) {
                         rd_kafka_topic_wrunlock(rkt);
-                        
-                        rd_list_add(&deleted_topics, rkt);
+
+                        if (rk->rk_conf.destroy_nonexistent_topics) {
+                                rd_list_add(&deleted_topics, rkt);
+                        }
                         continue;
                 }
 
@@ -1673,9 +1678,10 @@ void rd_kafka_topic_scan_all(rd_kafka_t *rk, rd_ts_t now) {
                     rk->rk_conf.allow_auto_create_topics,
                     rd_false /*!cgrp_update*/, "refresh unavailable topics");
         rd_list_destroy(&query_topics);
-        
+
         if (!rd_list_empty(&deleted_topics)) {
-                rd_list_apply(&deleted_topics, rd_kafka_remove_deleted_topic_eonce, NULL);
+                rd_list_apply(&deleted_topics,
+                              rd_kafka_remove_deleted_topic_eonce, NULL);
         }
         rd_list_destroy(&deleted_topics);
 }
@@ -1847,8 +1853,18 @@ void rd_kafka_local_topics_to_list(rd_kafka_t *rk,
 
         rd_kafka_rdlock(rk);
         rd_list_grow(topics, rk->rk_topic_cnt);
-        TAILQ_FOREACH(rkt, &rk->rk_topics, rkt_link)
-        rd_list_add(topics, rd_strdup(rkt->rkt_topic->str));
+        TAILQ_FOREACH(rkt, &rk->rk_topics, rkt_link) {
+                if (rk->rk_conf.metadata_skip_nonexistent_topics) {
+                        rd_kafka_topic_rdlock(rkt);
+                        rd_bool_t notexists = rkt->rkt_state == RD_KAFKA_TOPIC_S_NOTEXISTS;
+                        rd_kafka_topic_rdunlock(rkt);
+
+                        if (notexists) {
+                                continue;
+                        }
+                }
+                rd_list_add(topics, rd_strdup(rkt->rkt_topic->str));
+        }
         cache_cnt = rd_kafka_metadata_cache_topics_to_list(rk, topics);
         if (cache_cntp)
                 *cache_cntp = cache_cnt;
