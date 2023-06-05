@@ -472,7 +472,7 @@ static const struct rd_kafka_property rd_kafka_properties[] = {
      "Avoid refreshing non-existent topics", 0, 1, 1},
     {_RK_GLOBAL, "topic.destroy.nonexistent", _RK_C_BOOL,
      _RK(destroy_nonexistent_topics),
-     "Destroy non-existent topics during periodic scan", 0, 1, 1},
+     "Destroy non-existent topics during periodic scan", 0, 1, 0},
     {_RK_GLOBAL, "topic.blacklist", _RK_C_PATLIST, _RK(topic_blacklist),
      "Topic blacklist, a comma-separated list of regular expressions "
      "for matching topic names that should be ignored in "
