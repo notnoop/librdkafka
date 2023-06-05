@@ -1538,7 +1538,7 @@ void rd_kafka_topic_scan_all(rd_kafka_t *rk, rd_ts_t now) {
                         // remove it once and for all
                         rd_kafka_topic_partitions_remove(rkt);
                         // free rk reference
-                        rd_kafka_topic_destroy(rkt);
+                        rd_kafka_topic_destroy0(rkt);
                         continue;
                 }
 
