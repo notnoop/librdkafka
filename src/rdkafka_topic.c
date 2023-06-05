@@ -1510,10 +1510,18 @@ static const char *rd_kafka_toppar_needs_query(rd_kafka_t *rk,
 static int rd_kafka_remove_deleted_topic_eonce(void *elem, void *opaque) {
         rd_kafka_topic_t *rkt = elem;
 
+        rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "MYWARN",
+                     "eonce called to destroying app_rkt %p "
+                     "topic=%.*s, app_refcnt=%d "
+                     "refcnt=%d flag=%d",
+                     rkt, RD_KAFKAP_STR_PR(rkt->rkt_topic),
+                     rd_refcnt_get(&rkt->rkt_app_refcnt),
+                     rd_refcnt_get(&rkt->rkt_refcnt), rkt->rkt_flags);
+
         // remove it once and for all
         rd_kafka_topic_partitions_remove(rkt);
         // free rk reference
-        rd_kafka_topic_destroy0(rkt);
+        //rd_kafka_topic_destroy0(rkt);
 
         return 0; /* remove eonce from list */
 }
