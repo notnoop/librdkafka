@@ -274,9 +274,6 @@ rd_kafka_topic_t *rd_kafka_topic_new0(rd_kafka_t *rk,
                                       rd_kafka_topic_conf_t *conf,
                                       int *existing,
                                       int do_lock) {
-        // always lock to fetch topics!
-        do_lock = 1;
-
         rd_kafka_topic_t *rkt;
         const struct rd_kafka_metadata_cache_entry *rkmce;
         const char *conf_err;
