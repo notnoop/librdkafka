@@ -1507,6 +1507,15 @@ static const char *rd_kafka_toppar_needs_query(rd_kafka_t *rk,
 }
 
 
+static int rd_kafka_remove_deleted_topic_eonce(void *elem, void *opaque) {
+        rd_kafka_topic_t *rkt = elem;
+
+        // remove it once and for all
+        rd_kafka_topic_partitions_remove(rkt);
+        // free rk reference
+        rd_kafka_topic_destroy0(rkt);
+        return 0; /* remove eonce from list */
+}
 
 /**
  * @brief Scan all topics and partitions for:
@@ -1521,8 +1530,10 @@ void rd_kafka_topic_scan_all(rd_kafka_t *rk, rd_ts_t now) {
         rd_kafka_topic_t *rkt;
         rd_kafka_toppar_t *rktp;
         rd_list_t query_topics;
+        rd_list_t deleted_topics;
 
         rd_list_init(&query_topics, 0, rd_free);
+        rd_list_init(&deleted_topics, 0, rd_free);
 
         rd_kafka_rdlock(rk);
         TAILQ_FOREACH(rkt, &rk->rk_topics, rkt_link) {
@@ -1535,10 +1546,7 @@ void rd_kafka_topic_scan_all(rd_kafka_t *rk, rd_ts_t now) {
                 if (rkt->rkt_state == RD_KAFKA_TOPIC_S_NOTEXISTS) {
                         rd_kafka_topic_wrunlock(rkt);
                         
-                        // remove it once and for all
-                        rd_kafka_topic_partitions_remove(rkt);
-                        // free rk reference
-                        rd_kafka_topic_destroy0(rkt);
+                        rd_list_add(&deleted_topics, rkt);
                         continue;
                 }
 
@@ -1665,6 +1673,11 @@ void rd_kafka_topic_scan_all(rd_kafka_t *rk, rd_ts_t now) {
                     rk->rk_conf.allow_auto_create_topics,
                     rd_false /*!cgrp_update*/, "refresh unavailable topics");
         rd_list_destroy(&query_topics);
+        
+        if (!rd_list_empty(&deleted_topics)) {
+                rd_list_apply(&deleted_topics, rd_kafka_remove_deleted_topic_eonce, NULL);
+        }
+        rd_list_destroy(&deleted_topics);
 }
 
 
