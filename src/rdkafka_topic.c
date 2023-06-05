@@ -118,6 +118,13 @@ void rd_kafka_topic_destroy_final(rd_kafka_topic_t *rkt) {
         rd_refcnt_destroy(&rkt->rkt_app_refcnt);
         rd_refcnt_destroy(&rkt->rkt_refcnt);
 
+        rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "FWARN",
+                     "Finally destroying app_rkt %p topic=%.*s, app_refcnt=%d "
+                     "refcnt=%d",
+                     rkt, RD_KAFKAP_STR_PR(rkt->rkt_topic),
+                     rd_refcnt_get(&rkt->rkt_app_refcnt),
+                     rd_refcnt_get(&rkt->rkt_refcnt));
+
         rd_free(rkt);
 }
 
@@ -1129,6 +1136,13 @@ rd_bool_t rd_kafka_topic_set_notexists(rd_kafka_topic_t *rkt,
 
         rkt->rkt_flags &= ~RD_KAFKA_TOPIC_F_LEADER_UNAVAIL;
 
+        rd_kafka_log(rkt->rkt_rk, LOG_WARNING, "FWARN",
+                     "Notified topic is freed app_rkt %p topic=%.*s, app_refcnt=%d "
+                     "refcnt=%d",
+                     rkt, RD_KAFKAP_STR_PR(rkt->rkt_topic),
+                     rd_refcnt_get(&rkt->rkt_app_refcnt),
+                     rd_refcnt_get(&rkt->rkt_refcnt));
+
         /* Update number of partitions */
         rd_kafka_topic_partition_cnt_update(rkt, 0);
 
@@ -1137,6 +1151,8 @@ rd_bool_t rd_kafka_topic_set_notexists(rd_kafka_topic_t *rkt,
 
         /* Propagate nonexistent topic info */
         rd_kafka_topic_propagate_notexists(rkt, err);
+
+        rd_kafka_topic_partitions_remove(rkt);
 
         return rd_true;
 }
